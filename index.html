@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>DASS-21 Screening</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #faf8f4;
+    --warm: #f5f0e8;
+    --line: #ddd8ce;
+    --accent: #c0392b;
+    --accent-soft: #fdecea;
+    --gold: #b8860b;
+    --gold-soft: #fdf8ec;
+    --green: #27ae60;
+    --green-soft: #eafaf1;
+    --stress: #e67e22;
+    --anxiety: #8e44ad;
+    --depression: #2980b9;
+    --shadow: 0 2px 20px rgba(26,26,46,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; font-size: 16px; }
+
+  /* ── HEADER ── */
+  header { background: var(--ink); color: white; padding: 20px 20px 16px; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .header-top h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; letter-spacing: -1px; }
+  .header-top p { font-size: 0.7rem; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.1em; }
+  .count-badge { background: var(--accent); color: white; border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+  .header-fields { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hfield { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 140px; }
+  .hfield label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; }
+  .hfield input { background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.25); color: white; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; padding: 4px 0; outline: none; width: 100%; }
+  .hfield input:focus { border-bottom-color: white; }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { background: rgba(0,0,0,0.3); height: 4px; }
+  .progress-fill { height: 4px; background: var(--accent); transition: width 0.4s ease; width: 0%; }
+
+  /* ── STEPS ── */
+  .steps { display: flex; background: var(--warm); border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .step { flex: 1; min-width: 80px; padding: 10px 8px; text-align: center; font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #bbb; border-bottom: 3px solid transparent; }
+  .step.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .step.done { color: var(--green); border-bottom-color: var(--green); }
+  .step-num { width: 18px; height: 18px; border-radius: 50%; background: var(--line); color: #999; font-size: 0.68rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 3px; }
+  .step.active .step-num { background: var(--accent); color: white; }
+  .step.done .step-num { background: var(--green); color: white; }
+
+  /* ── SECTION WRAPPER ── */
+  .form-section { display: none; }
+  .form-section.active { display: block; }
+  .section-body { padding: 24px 20px 40px; max-width: 600px; margin: 0 auto; }
+
+  /* ── CARDS ── */
+  .card { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card h2 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; margin-bottom: 10px; }
+  .card p { font-size: 0.88rem; line-height: 1.7; color: #555; margin-bottom: 12px; }
+
+  /* ── CONSENT ── */
+  .consent-quote { background: var(--gold-soft); border-left: 4px solid var(--gold); border-radius: 0 8px 8px 0; padding: 16px 18px; font-style: italic; font-size: 0.92rem; line-height: 1.6; color: var(--ink); margin: 16px 0; }
+  .consent-tick { display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 10px; border: 2px solid var(--line); cursor: pointer; margin-top: 16px; transition: all 0.15s; }
+  .consent-tick:active { transform: scale(0.98); }
+  .consent-tick.checked { border-color: var(--gold); background: var(--gold-soft); }
+  .tick-box { width: 24px; height: 24px; min-width: 24px; border-radius: 6px; border: 2px solid var(--line); background: white; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.15s; }
+  .consent-tick.checked .tick-box { background: var(--gold); border-color: var(--gold); color: white; }
+  .tick-label { font-size: 0.88rem; line-height: 1.5; }
+  .tick-label strong { display: block; margin-bottom: 2px; font-size: 0.9rem; }
+
+  /* ── FORM FIELDS ── */
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .field label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #888; }
+  .field label .req { color: var(--accent); }
+  .field input, .field select {
+    font-family: 'DM Sans', sans-serif; font-size: 1rem;
+    padding: 12px 14px; border: 1.5px solid var(--line);
+    border-radius: 10px; background: white; color: var(--ink);
+    outline: none; width: 100%; appearance: none; -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--ink); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── RADIO PILLS ── */
+  .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    padding: 10px 16px; border: 1.5px solid var(--line); border-radius: 100px;
+    font-size: 0.88rem; cursor: pointer; background: white; color: var(--ink);
+    transition: all 0.15s; user-select: none;
+  }
+  .pill:active { transform: scale(0.96); }
+  .pill.sel { background: var(--ink); border-color: var(--ink); color: white; }
+
+  /* ── SECTION LABELS ── */
+  .sec-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin: 20px 0 10px; }
+  .sec-rule { border: none; border-top: 1px solid var(--line); margin: 20px 0; }
+
+  /* ── SCALE LEGEND ── */
+  .legend { background: var(--ink); color: white; padding: 0; }
+  .legend-row { display: flex; }
+  .legend-item { flex: 1; padding: 10px 6px; text-align: center; border-right: 1px solid rgba(255,255,255,0.08); }
+  .legend-item:last-child { border-right: none; }
+  .legend-num { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+  .legend-word { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; line-height: 1.3; }
+
+  /* ── QUESTIONS ── */
+  .q-card { background: white; border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+  .q-card.answered { border-color: #c8e6c9; background: #f9fffe; }
+  .q-top { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
+  .q-num { font-size: 0.72rem; font-weight: 700; color: #bbb; min-width: 20px; padding-top: 2px; }
+  .q-text { font-size: 0.92rem; line-height: 1.55; flex: 1; }
+  .q-btns { display: flex; gap: 8px; justify-content: space-between; }
+  .q-btn {
+    flex: 1; height: 48px; border-radius: 10px;
+    border: 2px solid var(--line); background: white;
+    font-family: 'DM Sans', sans-serif; font-size: 1.1rem; font-weight: 700; color: #bbb;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .q-btn:active { transform: scale(0.93); }
+  .q-btn.sel-depression { background: var(--depression); border-color: var(--depression); color: white; }
+  .q-btn.sel-anxiety { background: var(--anxiety); border-color: var(--anxiety); color: white; }
+  .q-btn.sel-stress { background: var(--stress); border-color: var(--stress); color: white; }
+
+  /* ── BUTTONS ── */
+  .btn { display: block; width: 100%; padding: 15px; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; text-align: center; margin-bottom: 10px; -webkit-tap-highlight-color: transparent; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+  .btn-secondary { background: var(--warm); color: var(--ink); border: 1.5px solid var(--line); }
+  .btn-green { background: var(--green); color: white; }
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row .btn { margin-bottom: 0; }
+
+  /* ── RESULTS ── */
+  .results-card { background: var(--ink); color: white; border-radius: 14px; padding: 24px; margin-top: 20px; display: none; }
+  .results-card.visible { display: block; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .results-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; margin-bottom: 4px; }
+  .results-sub { font-size: 0.78rem; opacity: 0.5; margin-bottom: 20px; }
+  .score-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .score-box { flex: 1; background: rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 8px; text-align: center; }
+  .score-cat { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.55; margin-bottom: 6px; }
+  .score-val { font-family: 'DM Serif Display', serif; font-size: 2.2rem; line-height: 1; margin-bottom: 6px; }
+  .score-lbl { font-size: 0.7rem; padding: 3px 8px; border-radius: 100px; display: inline-block; font-weight: 600; }
+  .lbl-normal { background: rgba(46,204,113,0.2); color: #2ecc71; }
+  .lbl-mild { background: rgba(241,196,15,0.2); color: #f1c40f; }
+  .lbl-moderate { background: rgba(230,126,34,0.2); color: #e67e22; }
+  .lbl-severe { background: rgba(231,76,60,0.2); color: #e74c3c; }
+  .lbl-extremely-severe { background: rgba(192,57,43,0.3); color: #ff6b6b; }
+  .saved-banner { background: rgba(39,174,96,0.2); border: 1px solid rgba(39,174,96,0.4); border-radius: 8px; padding: 12px 14px; font-size: 0.83rem; color: #2ecc71; margin: 14px 0; display: none; }
+  .saved-banner.show { display: block; }
+  .disclaimer { font-size: 0.72rem; opacity: 0.4; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; margin-top: 12px; }
+
+  /* ── NOTICE ── */
+  .notice { background: var(--accent-soft); border: 1px solid #f5c6c2; border-radius: 8px; padding: 12px 14px; font-size: 0.85rem; color: var(--accent); margin-top: 12px; display: none; }
+
+  /* ── ADMIN STRIP ── */
+  .admin-strip { background: #0f0f1e; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .admin-strip-info { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+  .admin-btn { padding: 8px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none; }
+  .admin-btn-dl { background: var(--green); color: white; }
+  .admin-btn-clr { background: rgba(255,255,255,0.1); color: white; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <div>
+      <h1>DASS 21</h1>
+      <p>Depression · Anxiety · Stress Scales</p>
+    </div>
+    <div class="count-badge" id="countBadge">0 saved</div>
+  </div>
+  <div class="header-fields">
+    <div class="hfield">
+      <label>Participant Name</label>
+      <input type="text" id="pName" placeholder="Full name" autocomplete="off">
+    </div>
+    <div class="hfield">
+      <label>Date</label>
+      <input type="date" id="pDate">
+    </div>
+  </div>
+</header>
+<div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- STEPS -->
+<div class="steps">
+  <div class="step active" id="tab-1"><div class="step-num">1</div><br>Consent</div>
+  <div class="step" id="tab-2"><div class="step-num">2</div><br>Details</div>
+  <div class="step" id="tab-3"><div class="step-num">3</div><br>Questions</div>
+</div>
+
+<!-- ══ SECTION 1 — CONSENT ══ -->
+<div class="form-section active" id="sec-consent">
+  <div class="section-body">
+    <div class="card">
+      <div style="font-size:2rem;margin-bottom:12px;">📋</div>
+      <h2>Informed Consent</h2>
+      <p>This questionnaire is part of your organisation's employee wellbeing program, administered in line with workplace health and safety obligations.</p>
+      <p>Your responses are <strong>confidential</strong> and will only be used to support your mental health and wellbeing. Results will not affect your employment.</p>
+      <div class="consent-quote">"I understand the purpose of this screening and voluntarily agree to participate."</div>
+      <p style="font-size:0.8rem;color:#999;line-height:1.6;">Ticking below confirms your participation is voluntary and you may withdraw at any time.</p>
+      <div class="consent-tick" id="consentTick" onclick="toggleConsent()">
+        <div class="tick-box" id="tickBox"></div>
+        <div class="tick-label">
+          <strong>I agree and give my informed consent.</strong>
+          I understand the purpose of this screening and voluntarily agree to participate.
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="consentBtn" onclick="goTo(2)" disabled>Continue →</button>
+  </div>
+</div>
+
+<!-- ══ SECTION 2 — DEMOGRAPHICS ══ -->
+<div class="form-section" id="sec-demo">
+  <div class="section-body">
+
+    <div class="sec-lbl">Personal Information</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Age <span class="req">*</span></label>
+        <input type="number" id="d-age" placeholder="e.g. 34" min="16" max="80" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Education</label>
+        <select id="d-edu">
+          <option value="">Select…</option>
+          <option>Did not complete high school</option>
+          <option>High school / Year 12</option>
+          <option>Certificate / Trade</option>
+          <option>Diploma</option>
+          <option>Bachelor's degree</option>
+          <option>Postgraduate</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Gender <span class="req">*</span></label>
+      <div class="pill-group" id="d-gender">
+        <div class="pill" onclick="selPill('d-gender',this)">Male</div>
+        <div class="pill" onclick="selPill('d-gender',this)">Female</div>
+        <div class="pill" onclick="selPill('d-gender',this)">Non-binary</div>
+        <div class="pill" onclick="selPill('d-gender',this)">Prefer not to say</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Relationship Status</label>
+      <select id="d-rel">
+        <option value="">Select…</option>
+        <option>Single</option>
+        <option>In a relationship / De facto</option>
+        <option>Married</option>
+        <option>Separated / Divorced</option>
+        <option>Widowed</option>
+        <option>Prefer not to say</option>
+      </select>
+    </div>
+
+    <hr class="sec-rule">
+    <div class="sec-lbl">Employment &amp; Mining Background</div>
+
+    <div class="field">
+      <label>Job Title / Role <span class="req">*</span></label>
+      <input type="text" id="d-job" placeholder="e.g. Drill &amp; Blast Operator" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Department / Crew</label>
+      <input type="text" id="d-dept" placeholder="e.g. Open Cut, Processing" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Employment Type <span class="req">*</span></label>
+      <div class="pill-group" id="d-emp">
+        <div class="pill" onclick="selPill('d-emp',this)">Permanent</div>
+        <div class="pill" onclick="selPill('d-emp',this)">Contractor</div>
+        <div class="pill" onclick="selPill('d-emp',this)">Casual</div>
+        <div class="pill" onclick="selPill('d-emp',this)">Labour Hire</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Roster / Shift Pattern</label>
+      <select id="d-roster">
+        <option value="">Select…</option>
+        <option>8-hour days (Mon–Fri)</option>
+        <option>10-hour days</option>
+        <option>12-hour days</option>
+        <option>12-hour rotating (days &amp; nights)</option>
+        <option>FIFO – 2/1</option>
+        <option>FIFO – 4/1</option>
+        <option>FIFO – 8/6</option>
+        <option>DIDO</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Total Years Experience in Mining <span class="req">*</span></label>
+      <div class="pill-group" id="d-yrsmine">
+        <div class="pill" onclick="selPill('d-yrsmine',this)">Less than 1 yr</div>
+        <div class="pill" onclick="selPill('d-yrsmine',this)">1 – 3 yrs</div>
+        <div class="pill" onclick="selPill('d-yrsmine',this)">4 – 7 yrs</div>
+        <div class="pill" onclick="selPill('d-yrsmine',this)">8 – 15 yrs</div>
+        <div class="pill" onclick="selPill('d-yrsmine',this)">15+ yrs</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Years in Current Role</label>
+      <div class="pill-group" id="d-yrscur">
+        <div class="pill" onclick="selPill('d-yrscur',this)">Less than 1 yr</div>
+        <div class="pill" onclick="selPill('d-yrscur',this)">1 – 3 yrs</div>
+        <div class="pill" onclick="selPill('d-yrscur',this)">4 – 7 yrs</div>
+        <div class="pill" onclick="selPill('d-yrscur',this)">8+ yrs</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Primary Work Environment</label>
+      <div class="pill-group" id="d-env">
+        <div class="pill" onclick="selPill('d-env',this)">Open cut / Surface</div>
+        <div class="pill" onclick="selPill('d-env',this)">Underground</div>
+        <div class="pill" onclick="selPill('d-env',this)">Processing plant</div>
+        <div class="pill" onclick="selPill('d-env',this)">Workshop / Maintenance</div>
+        <div class="pill" onclick="selPill('d-env',this)">Office / Admin</div>
+      </div>
+    </div>
+
+    <hr class="sec-rule">
+    <div class="sec-lbl">Wellbeing Context</div>
+
+    <div class="field">
+      <label>Previously accessed mental health support?</label>
+      <div class="pill-group" id="d-mh">
+        <div class="pill" onclick="selPill('d-mh',this)">Yes – work EAP</div>
+        <div class="pill" onclick="selPill('d-mh',this)">Yes – privately</div>
+        <div class="pill" onclick="selPill('d-mh',this)">No</div>
+        <div class="pill" onclick="selPill('d-mh',this)">Prefer not to say</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Referral Source / Clinician</label>
+      <input type="text" id="d-ref" placeholder="e.g. Site Nurse, OHS Manager" autocomplete="off">
+    </div>
+
+    <div class="btn-row" style="margin-top:24px;">
+      <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goTo(3)">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 3 — QUESTIONS ══ -->
+<div class="form-section" id="sec-questions">
+
+  <div class="legend">
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-num">0</div><div class="legend-word">Never</div></div>
+      <div class="legend-item"><div class="legend-num">1</div><div class="legend-word">Sometimes</div></div>
+      <div class="legend-item"><div class="legend-num">2</div><div class="legend-word">Often</div></div>
+      <div class="legend-item"><div class="legend-num">3</div><div class="legend-word">Almost Always</div></div>
+    </div>
+  </div>
+
+  <div class="section-body">
+    <div id="qContainer"></div>
+
+    <div class="notice" id="notice">⚠ Please answer all 21 questions before submitting.</div>
+
+    <div class="btn-row" style="margin-bottom:10px;">
+      <button class="btn btn-secondary" onclick="goTo(2)" style="flex:0.4;">← Back</button>
+      <button class="btn btn-primary" onclick="submitForm()" style="flex:1;">Submit &amp; Save</button>
+    </div>
+
+    <div class="results-card" id="resultsCard">
+      <div class="results-title">Saved ✓</div>
+      <div class="results-sub" id="resSub"></div>
+      <div class="score-row" id="scoreRow"></div>
+      <div class="saved-banner" id="savedBanner"></div>
+      <button class="btn btn-green" onclick="dlCSV()" style="margin-bottom:10px;">⬇ Download All Data (CSV)</button>
+      <button class="btn btn-secondary" onclick="nextParticipant()">Next Participant →</button>
+      <div class="disclaimer"><strong>Note:</strong> DASS-21 is a screening tool, not a clinical diagnosis. Scores ×2 for DASS-42 equivalence. Refer to qualified health professional if concerned.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN STRIP (bottom) -->
+<div class="admin-strip">
+  <div class="admin-strip-info" id="adminInfo">No responses yet</div>
+  <div>
+    <button class="admin-btn admin-btn-dl" onclick="dlCSV()">⬇ Download CSV</button>
+    <button class="admin-btn admin-btn-clr" onclick="clearAll()">🗑 Clear</button>
+  </div>
+</div>
+
+<script>
+// ── All responses stored IN MEMORY (works on all iPhones) ──
+// Data persists as long as the browser tab is open.
+// Collector downloads CSV before closing.
+const allResponses = [];
+
+const Qs = [
+  {id:1,text:"I found it hard to wind down",cat:"stress"},
+  {id:2,text:"I was aware of dryness of my mouth",cat:"anxiety"},
+  {id:3,text:"I couldn't seem to experience any positive feeling at all",cat:"depression"},
+  {id:4,text:"I experienced breathing difficulty (eg, rapid breathing or breathlessness without physical exertion)",cat:"anxiety"},
+  {id:5,text:"I found it difficult to work up the initiative to do things",cat:"depression"},
+  {id:6,text:"I tended to over-react to situations",cat:"stress"},
+  {id:7,text:"I experienced trembling (eg, in the hands)",cat:"anxiety"},
+  {id:8,text:"I felt that I was using a lot of nervous energy",cat:"stress"},
+  {id:9,text:"I was worried about situations in which I might panic and make a fool of myself",cat:"anxiety"},
+  {id:10,text:"I felt that I had nothing to look forward to",cat:"depression"},
+  {id:11,text:"I found myself getting agitated",cat:"stress"},
+  {id:12,text:"I found it difficult to relax",cat:"stress"},
+  {id:13,text:"I felt down-hearted and blue",cat:"depression"},
+  {id:14,text:"I was intolerant of anything that kept me from getting on with what I was doing",cat:"stress"},
+  {id:15,text:"I felt I was close to panic",cat:"anxiety"},
+  {id:16,text:"I was unable to become enthusiastic about anything",cat:"depression"},
+  {id:17,text:"I felt I wasn't worth much as a person",cat:"depression"},
+  {id:18,text:"I felt that I was rather touchy",cat:"stress"},
+  {id:19,text:"I was aware of the action of my heart in the absence of physical exertion (eg, heart racing or missing a beat)",cat:"anxiety"},
+  {id:20,text:"I felt scared without any good reason",cat:"anxiety"},
+  {id:21,text:"I felt that life was meaningless",cat:"depression"}
+];
+
+const answers = {};
+
+function goTo(n) {
+  ['sec-consent','sec-demo','sec-questions'].forEach((id,i) => {
+    document.getElementById(id).classList.toggle('active', i+1===n);
+  });
+  ['tab-1','tab-2','tab-3'].forEach((id,i) => {
+    const t = document.getElementById(id);
+    t.classList.remove('active','done');
+    if (i+1===n) t.classList.add('active');
+    else if (i+1<n) t.classList.add('done');
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+  updateProgress(n);
+}
+
+function updateProgress(section) {
+  const base = (section-1)/3;
+  const qBonus = section===3 ? (Object.keys(answers).length/21)/3 : 0;
+  document.getElementById('progressFill').style.width = ((base+qBonus)*100)+'%';
+}
+
+function toggleConsent() {
+  const tick = document.getElementById('consentTick');
+  const box = document.getElementById('tickBox');
+  const btn = document.getElementById('consentBtn');
+  const checked = tick.classList.toggle('checked');
+  box.textContent = checked ? '✓' : '';
+  btn.disabled = !checked;
+}
+
+function selPill(groupId, el) {
+  document.querySelectorAll('#'+groupId+' .pill').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function getPill(groupId) {
+  const s = document.querySelector('#'+groupId+' .pill.sel');
+  return s ? s.textContent.trim() : '';
+}
+
+function buildQuestions() {
+  const c = document.getElementById('qContainer');
+  Qs.forEach(q => {
+    const div = document.createElement('div');
+    div.className = 'q-card';
+    div.id = 'qc-'+q.id;
+    div.innerHTML = `
+      <div class="q-top">
+        <div class="q-num">${q.id}</div>
+        <div class="q-text">${q.text}</div>
+      </div>
+      <div class="q-btns">
+        ${[0,1,2,3].map(v=>`<button class="q-btn" id="qb-${q.id}-${v}" onclick="pickAnswer(${q.id},${v},'${q.cat}')">${v}</button>`).join('')}
+      </div>`;
+    c.appendChild(div);
+  });
+}
+
+function pickAnswer(qId, val, cat) {
+  answers[qId] = val;
+  for(let v=0;v<=3;v++) {
+    const b = document.getElementById('qb-'+qId+'-'+v);
+    b.classList.remove('sel-depression','sel-anxiety','sel-stress');
+    if(v===val) b.classList.add('sel-'+cat);
+  }
+  document.getElementById('qc-'+qId).classList.add('answered');
+  updateProgress(3);
+}
+
+function severity(score, type) {
+  const t = {
+    depression:[[9,'Normal','normal'],[13,'Mild','mild'],[20,'Moderate','moderate'],[27,'Severe','severe'],[Infinity,'Ext. Severe','extremely-severe']],
+    anxiety:[[7,'Normal','normal'],[9,'Mild','mild'],[14,'Moderate','moderate'],[19,'Severe','severe'],[Infinity,'Ext. Severe','extremely-severe']],
+    stress:[[14,'Normal','normal'],[18,'Mild','mild'],[25,'Moderate','moderate'],[33,'Severe','severe'],[Infinity,'Ext. Severe','extremely-severe']]
+  };
+  for(const [thr,lbl,cls] of t[type]) if(score<=thr) return {lbl,cls};
+}
+
+function submitForm() {
+  if(Object.keys(answers).length < 21) {
+    const n = document.getElementById('notice');
+    n.style.display='block';
+    n.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  document.getElementById('notice').style.display='none';
+
+  const raw = {depression:0,anxiety:0,stress:0};
+  Qs.forEach(q => { raw[q.cat] += answers[q.id]; });
+  const fin = {depression:raw.depression*2, anxiety:raw.anxiety*2, stress:raw.stress*2};
+
+  const record = {
+    submission_id: Date.now(),
+    timestamp: new Date().toISOString(),
+    participant_name: document.getElementById('pName').value||'',
+    date: document.getElementById('pDate').value||'',
+    age: document.getElementById('d-age').value||'',
+    gender: getPill('d-gender'),
+    education: document.getElementById('d-edu').value||'',
+    relationship_status: document.getElementById('d-rel').value||'',
+    job_title: document.getElementById('d-job').value||'',
+    department: document.getElementById('d-dept').value||'',
+    employment_type: getPill('d-emp'),
+    roster: document.getElementById('d-roster').value||'',
+    years_in_mining: getPill('d-yrsmine'),
+    years_in_current_role: getPill('d-yrscur'),
+    work_environment: getPill('d-env'),
+    prior_mh_support: getPill('d-mh'),
+    referral_source: document.getElementById('d-ref').value||'',
+    depression_score: fin.depression,
+    anxiety_score: fin.anxiety,
+    stress_score: fin.stress,
+    depression_severity: severity(fin.depression,'depression').lbl,
+    anxiety_severity: severity(fin.anxiety,'anxiety').lbl,
+    stress_severity: severity(fin.stress,'stress').lbl,
+  };
+  Qs.forEach(q => { record['Q'+q.id] = answers[q.id]; });
+
+  allResponses.push(record);
+  updateAdminUI();
+
+  // Show results
+  document.getElementById('scoreRow').innerHTML = ['depression','anxiety','stress'].map(cat => {
+    const s=fin[cat], sv=severity(s,cat);
+    const col = cat==='depression'?'#5dade2':cat==='anxiety'?'#c39bd3':'#f0a500';
+    return `<div class="score-box">
+      <div class="score-cat" style="color:${col}">${cat}</div>
+      <div class="score-val" style="color:${col}">${s}</div>
+      <span class="score-lbl lbl-${sv.cls}">${sv.lbl}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('resSub').textContent =
+    `Participant #${allResponses.length} · ${record.participant_name||'Anonymous'} · ${new Date().toLocaleDateString()}`;
+
+  const banner = document.getElementById('savedBanner');
+  banner.textContent = `✅ Response saved. Total collected: ${allResponses.length} participant${allResponses.length>1?'s':''}.`;
+  banner.classList.add('show');
+
+  const card = document.getElementById('resultsCard');
+  card.classList.add('visible');
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('progressFill').style.width = '100%';
+}
+
+function updateAdminUI() {
+  const n = allResponses.length;
+  document.getElementById('countBadge').textContent = n+' saved';
+  document.getElementById('adminInfo').textContent =
+    n===0 ? 'No responses yet' : `${n} participant${n>1?'s':''} collected`;
+}
+
+function dlCSV() {
+  if(allResponses.length===0){ alert('No data yet — submit at least one response first.'); return; }
+  const headers = Object.keys(allResponses[0]);
+  const rows = allResponses.map(r =>
+    headers.map(h => '"'+(String(r[h]||'')).replace(/"/g,'""')+'"').join(',')
+  );
+  const csv = [headers.join(','),...rows].join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url;
+  a.download='DASS21_Responses_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function nextParticipant() {
+  // Clear answers + form fields — keep allResponses intact
+  Object.keys(answers).forEach(k=>delete answers[k]);
+  Qs.forEach(q=>{
+    document.getElementById('qc-'+q.id).classList.remove('answered');
+    for(let v=0;v<=3;v++) document.getElementById('qb-'+q.id+'-'+v).classList.remove('sel-depression','sel-anxiety','sel-stress');
+  });
+  document.getElementById('resultsCard').classList.remove('visible');
+  document.getElementById('savedBanner').classList.remove('show');
+  document.getElementById('notice').style.display='none';
+  // Clear personal fields
+  ['pName','d-age','d-job','d-dept','d-ref'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['d-rel','d-edu','d-roster'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['d-gender','d-emp','d-yrsmine','d-yrscur','d-env','d-mh'].forEach(id=>{
+    document.querySelectorAll('#'+id+' .pill').forEach(p=>p.classList.remove('sel'));
+  });
+  // Reset consent
+  document.getElementById('consentTick').classList.remove('checked');
+  document.getElementById('tickBox').textContent='';
+  document.getElementById('consentBtn').disabled=true;
+  document.getElementById('pDate').value=new Date().toISOString().split('T')[0];
+  goTo(1);
+}
+
+function clearAll() {
+  if(!confirm('⚠ This will delete ALL collected responses from memory.\n\nDownload the CSV first! Are you sure?')) return;
+  allResponses.length=0;
+  updateAdminUI();
+  alert('All records cleared.');
+}
+
+// Init
+document.getElementById('pDate').value = new Date().toISOString().split('T')[0];
+buildQuestions();
+updateAdminUI();
+</script>
+</body>
+</html>
